@@ -23,7 +23,7 @@ router.get('/google/callback',
     const user = req.user;
 
     const token = jwt.sign({
-      id: user.id,
+      UserId: user.id,
       email: user.email,
       username: user.username,
       name: user.name,
