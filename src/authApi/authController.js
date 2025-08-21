@@ -65,7 +65,7 @@ exports.register = async (req, res) => {
     );
 
     // 📧 Send verification email
-    const verifylink = `http://localhost:1000/verifyEmail?token=${token}`;
+    const verifylink = `http://localhost:3000/verifyEmail?token=${token}`;
     await sendEmail({
       to: email,
       subject: 'Welcome to Our Platform!',
