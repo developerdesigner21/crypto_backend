@@ -23,13 +23,13 @@ router.get('/google/callback',
     const user = req.user;
 
     const token = jwt.sign({
-      UserId: user.id,
+      userId: user.id,
       email: user.email,
       username: user.username,
       name: user.name,
     }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    res.redirect(`http://localhost:3000/home?token=${token}`);
+    res.redirect(`http://localhost:3000/success?token=${token}`);
   }
 );
 
