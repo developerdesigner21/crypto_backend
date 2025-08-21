@@ -29,7 +29,7 @@ router.get('/google/callback',
       name: user.name,
     }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    res.redirect(`http://localhost:3000/success?token=${token}`);
+    res.redirect(`${process.env.OWNER_URL}/success?token=${token}`);
   }
 );
 
