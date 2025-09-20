@@ -169,7 +169,7 @@ console.log("Step 2")
     } catch (fallbackErr) {
       console.error("❌ getWallets Fallback Error:", fallbackErr.message);
       return res.status(500).json({
-        msg: 'Failed to fetch wallets',
+        msg: err.message,
         status_code: false,
         error: fallbackErr.message
       });
@@ -428,7 +428,7 @@ exports.getWalletHistory = async (req, res) => {
   } catch (err) {
     console.error("❌ getWalletHistory Error:", err);
     res.status(500).json({
-      msg: 'Database error while fetching wallet history',
+      msg: err.message,
       status_code: false
     });
   }
