@@ -214,7 +214,7 @@ exports.addWallet = async (req, res) => {
 
   } catch (err) {
     console.error("❌ Database Error:", err);
-    res.status(500).json({ msg: 'Database error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -274,7 +274,7 @@ exports.updateWallet = async (req, res) => {
 
   } catch (err) {
     console.error("❌ Update Error:", err);
-    res.status(500).json({ msg: 'Database error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -295,7 +295,7 @@ exports.deleteWallet = async (req, res) => {
 
   } catch (err) {
     console.error("❌ Delete Error:", err);
-    res.status(500).json({ msg: 'Database error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -336,7 +336,7 @@ exports.bycoin = async (req, res) => {
 
   } catch (err) {
     console.error("❌ bycoin Error:", err);
-    res.status(500).json({ msg: 'Database error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
     console.log("123",err);
   }
 };
@@ -390,7 +390,7 @@ exports.sellcoin = async (req, res) => {
 
   } catch (err) {
     console.error("❌ sellcoin Error:", err);
-    res.status(500).json({ msg: 'Database error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -504,7 +504,7 @@ exports.getCoinPrice = async (req, res) => {
 
   } catch (err) {
     console.error("❌ getCoinPrice Error:", err);
-    res.status(500).json({ msg: "Internal server error", status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -551,7 +551,7 @@ exports.swapCrypto = async (req, res) => {
 
   } catch (err) {
     console.error("❌ Swap Error:", err.message);
-    return res.status(500).json({ msg: "Swap failed", status_code: false });
+    return res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 

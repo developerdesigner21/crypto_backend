@@ -10,11 +10,12 @@ exports.addword = async (req, res) => {
   try {
     const { type, one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve } = req.body;
     const authHeader = req.headers.authorization;
-    const token = authHeader ? authHeader.slice(7) : "";
-
-    if (!token) {
+    if (!authHeader) {
       return res.status(401).json({ msg: 'Authorization token missing', status_code: false });
     }
+    const token = authHeader ? authHeader.slice(7) : "";
+
+    console.log("token", authHeader);
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
@@ -65,7 +66,7 @@ exports.addword = async (req, res) => {
 
   } catch (err) {
     console.error("❌ addword Error:", err.message);
-    res.status(500).json({ msg: 'Internal server error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -112,7 +113,7 @@ exports.generateWalletAddress = async (req, res) => {
 
   } catch (err) {
     console.error("❌ generateWalletAddress Error:", err.message);
-    res.status(500).json({ msg: 'Internal server error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -204,7 +205,7 @@ exports.getwalletHistory = async (req, res) => {
 
   } catch (err) {
     console.error('Error fetching wallet history:', err.message);
-    res.status(500).json({ status_code: false, msg: 'Error fetching history' });
+    res.status(500).json({ status_code: false, msg: err.message });
   }
 };
 
@@ -264,7 +265,7 @@ exports.iframe = async (req, res) => {
 
   } catch (err) {
     console.error("❌ iframe Error:", err.message);
-    res.status(500).json({ msg: 'Internal server error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
