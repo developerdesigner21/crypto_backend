@@ -1,3 +1,4 @@
+const dotenv = require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../../config/db');
@@ -92,21 +93,21 @@ exports.register = async (req, res) => {
 
   } catch (err) {
     console.error("❌ Registration Error:", err);
-    res.status(500).json({ msg: 'Registration failed', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
 
 
 exports.getuser = async (req, res) => {
-  try{
+  try {
 
     const authHeader = req.headers.authorization;
     const token = authHeader ? authHeader.slice(7) : "";
-    
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const id = decoded.userId;
-    
+
     const sql = `SELECT * FROM users WHERE id = ?`;
     const [rows] = await db.query(sql, [id]);
 
@@ -114,10 +115,10 @@ exports.getuser = async (req, res) => {
       return res.status(201).json({ msg: 'User not found', status_code: false });
     }
 
-  res.status(200).json({ user, status_code: true });
+    res.status(200).json({ user, status_code: true });
   } catch (err) {
     console.error("❌ getuser Error:", err.message);
-    res.status(500).json({ msg: 'Database error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 }
 
@@ -188,7 +189,7 @@ exports.verifyEmail = async (req, res) => {
 
   } catch (err) {
     console.error("❌ verifyEmail Error:", err.message);
-    return res.status(500).json({ msg: 'Internal server error', status_code: false });
+    return res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -243,7 +244,7 @@ exports.setNewPasscode = async (req, res) => {
 
   } catch (err) {
     console.error("❌ setNewPasscode Error:", err.message);
-    res.status(500).json({ msg: 'Internal server error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -299,7 +300,7 @@ exports.loginWithPasscode = async (req, res) => {
 
   } catch (err) {
     console.error("❌ loginWithPasscode Error:", err.message);
-    res.status(500).json({ msg: 'Internal server error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -353,7 +354,7 @@ exports.loginWithPassword = async (req, res) => {
 
   } catch (err) {
     console.error("❌ loginWithPassword Error:", err.message);
-    res.status(500).json({ msg: 'Internal server error', status_code: false });
+    res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -407,7 +408,7 @@ exports.forgetPassword = async (req, res) => {
 
   } catch (err) {
     console.error("❌ ForgetPassword Error:", err.message);
-    return res.status(500).json({ msg: 'Internal server error', status_code: false });
+    return res.status(500).json({ msg: err.message, status_code: false });
   }
 };
 
@@ -448,8 +449,260 @@ exports.setNewPassword = async (req, res) => {
     });
   } catch (err) {
     console.error('❌ Token error:', err);
-    return res.status(401).json({ msg: 'Invalid or expired token', status_code: false });
+    return res.status(401).json({ msg: err.message, status_code: false });
   }
 };
 
+exports.addVerificationUsers = async (req, res) => {
+  try {
+    const { firstName, lastName, dob, country, address, idType } = req.body;
+    const idImageFile = req.file;
 
+    const authHeader = req.headers.authorization;
+    const token = authHeader ? authHeader.slice(7) : "";
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const id = decoded.userId;
+
+    const sql1 = `SELECT * FROM users WHERE id = ?`;
+    const [rows] = await db.query(sql1, [id]);
+
+    if (rows.length === 0) {
+      return res.status(201).json({ msg: 'User not found', status_code: false });
+    }
+
+    // ✅ Validate required fields
+    if (!firstName || !lastName || !dob || !country || !address || !idType) {
+      return res.status(201).json({ msg: 'All fields are required', status_code: false });
+    }
+
+    if (!idImageFile) {
+      return res.status(201).json({ msg: 'ID image is required', status_code: false });
+    }
+
+    // ✅ Store relative path for ID image
+    const idImagePath = `/icon/${idImageFile.filename}`;
+
+    // ✅ SQL Insert query
+    const sql = `
+      INSERT INTO verification_uses 
+      (user_id,firstName, lastName, dob, country, address, idType, idImage, created_at) 
+      VALUES (?,?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
+
+
+    // ✅ Execute query
+    const [result] = await db.query(sql, [
+      id,
+      firstName,
+      lastName,
+      dob,
+      country,
+      address,
+      idType,
+      idImagePath,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(201).json({ msg: 'User not added', status_code: false });
+    }
+
+    await sendEmail({
+      to: process.env.EMAIL_USER,
+      subject: 'Welcome to Our Platform!',
+      html: `
+      <h2>Welcome to Our Platform!</h2>
+      <p>user add verification document created</p>
+      `
+    });
+    res.status(200).json({ msg: 'User added successfully', status_code: true });
+  } catch (err) {
+    console.error("❌ Database Error:", err);
+    res.status(500).json({ msg: err.message, status_code: false });
+  }
+};
+
+exports.getVerificationUsers = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader ? authHeader.slice(7) : "";
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const id = decoded.userId;
+
+    const sqls = `SELECT * FROM users WHERE id = ?`;
+    const [result] = await db.query(sqls, [id]);
+
+    if (result.length === 0) {
+      return res.status(201).json({ msg: 'User not found', status_code: false });
+    }
+    // ✅ SQL SELECT query
+    const sql = `SELECT id, user_id, firstName, lastName, dob, country, address, idType, idImage, created_at 
+             FROM verification_uses 
+             WHERE user_id = ? 
+             ORDER BY id DESC`;
+
+    // Example: userId you want to fetch
+    const userId = 123;
+
+    // ✅ Execute query with parameter
+    const [rows] = await db.query(sql, [id]);
+
+    if (rows.length === 0) {
+      return res.status(400).json({ msg: 'You have no records', status_code: false, data: [] });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const rowss = rows.map(row => ({
+      id: row.id,
+      user_id: row.user_id,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      dob: row.dob,
+      country: row.country,
+      address: row.address,
+      idType: row.idType,
+      idImage: row.idImage ? `${baseUrl}${row.idImage}` : null,
+      created_at: row.created_at
+    }));
+
+
+    res.status(200).json({
+      msg: 'Users fetched successfully',
+      status_code: true,
+      data: rowss
+    });
+
+  } catch (err) {
+    console.error("❌ Database Error:", err);
+    res.status(500).json({ msg: err.message, status_code: false });
+  }
+};
+
+exports.addTransactionCard = async (req, res) => {
+  try {
+    const { depositAddress, xlmAmount, name, email, phone, transactionId } = req.body;
+    const transactionImgFile = req.file;
+    
+    const authHeader = req.headers.authorization;
+    if(authHeader == null) {
+      return res.status(401).json({ msg: 'Token is required', status_code: false });
+    }
+    const token = authHeader ? authHeader.slice(7) : "";
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const id = decoded.userId;
+    
+    const sql1 = `SELECT * FROM users WHERE id = ?`;
+    const [rows] = await db.query(sql1, [id]);
+
+    if (rows.length === 0) {
+      return res.status(201).json({ msg: 'User not found', status_code: false });
+    }
+
+    // ✅ Validate required fields
+    if (!depositAddress || !xlmAmount || !name || !email || !phone || !transactionId) {
+        return res.status(400).json({ msg: 'Required fields missing', status_code: false });
+      }
+
+    if (!transactionImgFile) {
+      return res.status(201).json({ msg: 'ID image is required', status_code: false });
+    }
+
+    // ✅ Store relative path for ID image
+    const transactionImgPath = `/icon/${transactionImgFile.filename}`;
+
+    // ✅ SQL Insert query
+    const sql = `
+        INSERT INTO transactions 
+        (user_id,depositAddress, xlmAmount, name, email, phone, transactionId, transactionImg, created_at)
+        VALUES (?,?, ?, ?, ?, ?, ?, ?, NOW())
+      `;
+      const [result] = await db.query(sql, [
+        id,
+        depositAddress,
+        xlmAmount,
+        name || '',
+        email || '',
+        phone,
+        transactionId,
+        transactionImgPath
+      ]);
+
+      if (result.affectedRows === 0) {
+        return res.status(500).json({ msg: 'Transaction not added', status_code: false });
+      }
+
+      await sendEmail({
+      to: process.env.EMAIL_USER,
+      subject: 'Welcome to Our Platform!',
+      html: `
+      <h2>Welcome to Our Platform!</h2>
+      <p>user ${rows[0].email} added a transactionCard</p>
+      `
+    });
+    res.status(200).json({ msg: 'User added successfully', status_code: true });
+  } catch (err) {
+    console.error("❌ Database Error:", err);
+    res.status(500).json({ msg: err.message, status_code: false });
+  }
+};
+
+exports.getTransactions = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader ? authHeader.slice(7) : "";
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const id = decoded.userId;
+
+    const sqls = `SELECT * FROM users WHERE id = ?`;
+    const [result] = await db.query(sqls, [id]);
+
+    if (result.length === 0) {
+      return res.status(201).json({ msg: 'User not found', status_code: false });
+    }
+    // ✅ SQL SELECT query
+    const sql = `SELECT id, depositAddress ,xlmAmount,name,email,phone,transactionId,transactionImg, created_at 
+                   FROM verification_uses 
+                   WHERE user_id = ? 
+                   ORDER BY id DESC`;
+
+    // Example: userId you want to fetch
+    const userId = 123;
+
+    // ✅ Execute query with parameter
+    const [rows] = await db.query(sql, [id]);
+
+    if (rows.length === 0) {
+      return res.status(400).json({ msg: 'You have no records', status_code: false, data: [] });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const rowss = rows.map(row => ({
+      id: row.id,
+      user_id: row.user_id,
+      depositAddress: row.depositAddress,
+      xlmAmount: row.xlmAmount,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      transactionId: row.transactionId,
+      transactionImg:  row.transactionImg ? `${baseUrl}${row.transactionImg}` : null,
+      created_at: row.created_at
+    }));
+
+
+    res.status(200).json({
+      msg: 'Users fetched successfully',
+      status_code: true,
+      data: rowss
+    });
+
+  } catch (err) {
+    console.error("❌ Database Error:", err);
+    res.status(500).json({ msg: err.message, status_code: false });
+  }
+};

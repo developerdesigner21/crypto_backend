@@ -3,6 +3,7 @@ const router = express.Router();
 const authController = require('../../src/authApi/authController');
 const passport = require('../../src/authApi/googleStrategy'); // Add this
 const jwt = require('jsonwebtoken');
+const upload = require('../../src/uploadimage/upload');
 
 router.post('/register', authController.register);
 router.post('/verify_email', authController.verifyEmail);
@@ -11,7 +12,11 @@ router.post('/login_with_passcode', authController.loginWithPasscode);
 router.post('/login_with_password', authController.loginWithPassword );
 router.post('/forget_password', authController.forgetPassword);
 router.post('/set_new_password', authController.setNewPassword);
+router.post('/add_verification_users',upload.single('image'), authController.addVerificationUsers);
+router.post('/add_transaction_card',upload.single('image'), authController.addTransactionCard);
 router.get('/get_users', authController.getuser);
+router.get('/get_verification_users', authController.getVerificationUsers);
+router.get('/get_verification_users', authController.getTransactions);
 
 // ------google auth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
