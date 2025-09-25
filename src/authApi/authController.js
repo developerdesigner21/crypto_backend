@@ -114,6 +114,7 @@ exports.getuser = async (req, res) => {
     if (rows.length === 0) {
       return res.status(201).json({ msg: 'User not found', status_code: false });
     }
+    const user = rows[0]; 
 
     res.status(200).json({ user, status_code: true });
   } catch (err) {
