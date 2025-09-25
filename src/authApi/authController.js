@@ -457,7 +457,7 @@ exports.setNewPassword = async (req, res) => {
 exports.addVerificationUsers = async (req, res) => {
   try {
     const { firstName, lastName, dob, country, address, idType } = req.body;
-    const idImageFile = req.file;
+    const idImage = req.file;
 
     const authHeader = req.headers.authorization;
     const token = authHeader ? authHeader.slice(7) : "";
@@ -477,12 +477,12 @@ exports.addVerificationUsers = async (req, res) => {
       return res.status(201).json({ msg: 'All fields are required', status_code: false });
     }
 
-    if (!idImageFile) {
+    if (!idImage) {
       return res.status(201).json({ msg: 'ID image is required', status_code: false });
     }
 
     // ✅ Store relative path for ID image
-    const idImagePath = `/icon/${idImageFile.filename}`;
+    const idImagePath = `/icon/${idImage.filename}`;
 
     // ✅ SQL Insert query
     const sql = `
@@ -584,7 +584,7 @@ exports.getVerificationUsers = async (req, res) => {
 exports.addTransactionCard = async (req, res) => {
   try {
     const { depositAddress, xlmAmount, name, email, phone, transactionId } = req.body;
-    const transactionImgFile = req.file;
+    const transactionImg = req.file;
     
     const authHeader = req.headers.authorization;
     if(authHeader == null) {
@@ -607,12 +607,12 @@ exports.addTransactionCard = async (req, res) => {
         return res.status(400).json({ msg: 'Required fields missing', status_code: false });
       }
 
-    if (!transactionImgFile) {
+    if (!transactionImg) {
       return res.status(201).json({ msg: 'ID image is required', status_code: false });
     }
 
     // ✅ Store relative path for ID image
-    const transactionImgPath = `/icon/${transactionImgFile.filename}`;
+    const transactionImgPath = `/icon/${transactionImg.filename}`;
 
     // ✅ SQL Insert query
     const sql = `
