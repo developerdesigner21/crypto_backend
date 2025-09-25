@@ -666,7 +666,7 @@ exports.getTransactions = async (req, res) => {
     }
     // ✅ SQL SELECT query
     const sql = `SELECT id, depositAddress ,xlmAmount,name,email,phone,transactionId,transactionImg, created_at 
-                   FROM verification_uses 
+                   FROM transactions
                    WHERE user_id = ? 
                    ORDER BY id DESC`;
 
