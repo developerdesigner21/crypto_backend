@@ -16,7 +16,7 @@ router.post('/add_verification_users',upload.single('image'), authController.add
 router.post('/add_transaction_card',upload.single('image'), authController.addTransactionCard);
 router.get('/get_users', authController.getuser);
 router.get('/get_verification_users', authController.getVerificationUsers);
-router.get('/get_verification_users', authController.getTransactions);
+router.get('/get_Transactions_users', authController.getTransactions);
 
 // ------google auth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
