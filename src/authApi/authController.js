@@ -3,7 +3,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../../config/db');
 const { sendEmail } = require('../emailSend/Nodemailer');
+const VerificationTemplete = require('../uploadimage/templates/VerificationTemplete');
 const e = require('express');
+const { baseUrl } = require('../cryptoApi/cryptoPriceService');
+const transactionTemplate = require('../uploadimage/templates/transactionTemplate');
 
 exports.register = async (req, res) => {
   try {
@@ -507,14 +510,12 @@ exports.addVerificationUsers = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(201).json({ msg: 'User not added', status_code: false });
     }
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
 
     await sendEmail({
       to: process.env.EMAIL_USER,
       subject: 'Welcome to Our Platform!',
-      html: `
-      <h2>Welcome to Our Platform!</h2>
-      <p>user add verification document created</p>
-      `
+      html: VerificationTemplete({firstName,lastName,dob,country,address,idType,idImagePath,id,baseUrl: baseUrl}),
     });
     res.status(200).json({ msg: 'User added successfully', status_code: true });
   } catch (err) {
@@ -635,13 +636,12 @@ exports.addTransactionCard = async (req, res) => {
         return res.status(500).json({ msg: 'Transaction not added', status_code: false });
       }
 
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+
       await sendEmail({
       to: process.env.EMAIL_USER,
       subject: 'Welcome to Our Platform!',
-      html: `
-      <h2>Welcome to Our Platform!</h2>
-      <p>user ${rows[0].email} added a transactionCard</p>
-      `
+      html: transactionTemplate({ id,depositAddress,xlmAmount,name,email,phone,transactionId,transactionImg,baseUrl : baseUrl}),
     });
     res.status(200).json({ msg: 'User added successfully', status_code: true });
   } catch (err) {
